@@ -1,6 +1,15 @@
+#players{
+  overflow:hidden;
+  text-align: center;
+}
+.centering{
+  overflow:hidden;
+  margin-left:auto;
+  margin-right:auto;
+  text-align: center;
+}
 .player-box{
-  width:50%;
-  float:left;
+  display:inline-block;
   text-align:center;
   padding:5px;
 }
@@ -12,6 +21,11 @@
   border:1px solid white;
 
 }
+
+.player-inner img{
+  width:100px;
+}
+
 .player-inner:hover{
   background-color: #dbdcdd;
 }

@@ -3,24 +3,26 @@
 
     <h3>Select a player:</h3>
 
-    {% for players in config.PLAYERS | batch(2) %}
-      {% for player in players %}
-        <div class="player-box">
-          <div class="player-inner" data-id="{{ player.id }}">
-            <img src="{{ player.avatar }}" alt="{{ player.name }} image" style="width:184px">
-            <h4 class="selectionTitle">{{ player.name }}</h4>
+    <div id="players" class="">
+      <div id="cbox" class="centering">
+      {% for player in config.PLAYERS %}
+          <div class="player-box" id="player-{{ player.id }}">
+            <div class="player-inner" data-id="{{ player.id }}" data-name="{{ player.name }}">
+              <img src="{{ player.avatar }}">
+              <h4 class="selectionTitle">{{ player.name }}</h4>
+            </div>
           </div>
-        </div>
       {% endfor %}
-      <div style="clear:both"></div>
-    {% endfor %}
+      </div>
+
+    </div>
 
     <h3>Select an item to give them:</h3>
 
     {% for items in config.ITEMS  | batch(3) %}
       {% for item in items %}
         <div class="item-box">
-          <div class="item-inner" data-string="{{item.string}}">
+          <div class="item-inner" data-string="{{item.string}}" data-name="{{ item.name }}">
             <img src="/item-images/{{ item.filename }}.png" alt="{{ item.name }} image" style="width:40px">
             <h4 class="selectionTitle">{{ item.name }}</h4>
           </div>
@@ -28,5 +30,40 @@
       {% endfor %}
       <div style="clear:both"></div>
     {% endfor %}
+    <hr>
 
+        <span class="summary">You want to give <span class="varSpan" id="itemname">_____</span> to <span class="varSpan" id="playername">_____</span>?</span>
+
+
+       <div class="form-group row">
+        <label for="inputEmail3" class="col-sm-2 col-form-label">How many?</label>
+        <div class="col-sm-10">
+          <select id="itemcount" class="custom-select">
+            <option selected>Open this select menu</option>
+            <option value="1">One</option>
+            <option value="2">Two</option>
+            <option value="3">Three</option>
+            <option value="4">Four</option>
+            <option value="5">Five</option>
+          </select>
+        </div>
+      </div>
+
+
+
+    <form action="/process-give" method="post">
+      <input style="display:none" type="text" name="player" id="player">
+      <input style="display:none" type="text" name="item" id="item">
+      <input style="display:none" type="text" name="count" id="count">
+      <a href="#" id="resetButton" name="resetButton" class="btn btn-danger">Cancel</a>
+      <button id="giveButton" name="giveButton" class="btn btn-success">Give it!</button>
+    </form>
+
+
+<div class="player-box" id="player-template" style="display:none">
+  <div class="player-inner" data-id="id" data-name="name">
+    <img src="avatar">
+    <h4 class="selectionTitle">name</h4>
+  </div>
+</div>
 {% endblock %}
