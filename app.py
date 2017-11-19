@@ -3,6 +3,7 @@ import os
 import settings
 from flask import Flask, render_template, redirect, url_for, jsonify, send_from_directory, request
 from flask_socketio import SocketIO, emit
+from flask_sqlalchemy import SQLAlchemy
 import hashlib
 import stripe
 import requests
@@ -10,7 +11,31 @@ import json
 
 app = Flask(__name__)
 app.config.from_object('settings.Config')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://rustard_u:password@localhost/rustard'
 socketio = SocketIO(app, logger=True, engineio_logger=True)
+db = SQLAlchemy(app)
+
+
+class Player(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    steamid = db.Column(db.String(), unique=True, nullable=False)
+    avatar_m = db.Column(db.String(), unique=False, nullable=True)
+    avatar_l = db.Column(db.String(), unique=False, nullable=True)
+    personaname = db.Column(db.String(), unique=False, nullable=True)
+    realname = db.Column(db.String(), unique=False, nullable=True)
+    online = db.Column(db.Boolean())
+
+    def __init__(self, steamid, avatar_m, avatar_l, personaname, realname, online=True):
+      self.steamid = steamid
+      self.avatar_m = avatar_m
+      self.avatar_l = avatar_l
+      self.personaname = personaname
+      self.realname = realname
+      self.online = online
+
+    def __repr__(self):
+      return '<User %r>' % self.steamid
+
 
 stripe_keys = {
   'secret_key': os.environ['STRIPE_SECRET_KEY'],
@@ -71,35 +96,70 @@ def charge():
 
     return render_template('charge.html', amount=amount)
 
-@app.route('/player', methods=['GET'])
-def player():
-  data = {
-    'playerId': "76561198026242506",
-    'playerName': "BadZombi",
-    'avatar': "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/eb/ebf67636075f05f2b98e4085dad04c4e484da05a_full.jpg"
-  }
-  socketio.emit('user_connected', data)
-  return "foo";
-
-@app.route('/player/connect/<steamid>', methods=['GET'])
-def player_connect(steamid):
+def getSteamDetails(steamid):
   url = "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=%s&steamids=%s" % (os.environ.get('STEAM_KEY'), steamid)
   r = requests.get(url)
   data = json.loads(r.text)
   response = data['response']
   player = response['players'][0]
 
-  new_user = {
-    'steamid': player['steamid'],
-    'personaname': player['personaname'],
-    'avatar': player['avatar']
-  }
+
+
+  return player
+
+@app.route('/player/connect/<steamid>', methods=['GET'])
+def player_connect(steamid):
+  # check for user in DB:
+  existingPlayer = Player.query.filter_by(steamid=steamid).first()
+
+  if existingPlayer:
+    if existingPlayer.online == True:
+      new_user = {
+        'steamid': existingPlayer.steamid,
+        'personaname': existingPlayer.personaname,
+        'avatar': existingPlayer.avatar_m
+      }
+    else:
+      # get latest info from steam
+      steam_data = getSteamDetails(steamid)
+      new_user = {
+        'steamid': steam_data['steamid'],
+        'personaname': steam_data['personaname'],
+        'avatar': steam_data['avatar']
+      }
+      existingPlayer.avatar_m = steam_data['avatarmedium']
+      existingPlayer.avatar_l = steam_data['avatarfull']
+      existingPlayer.personaname = steam_data['personaname']
+      existingPlayer.realname = steam_data['realname']
+      existingPlayer.online = True
+
+      # update existing user
+  else:
+    # get latest info from steam
+    steam_data = getSteamDetails(steamid)
+    new_user = {
+      'steamid': steam_data['steamid'],
+      'personaname': steam_data['personaname'],
+      'avatar': steam_data['avatar']
+    }
+
+    player = Player(steam_data['steamid'], steam_data['avatarmedium'], steam_data['avatarfull'], steam_data['personaname'], steam_data['realname'], True)
+
+    db.session.add(player)
+
+  db.session.commit()
+
   socketio.emit('user_connected', new_user)
 
   return "user connected."
 
 @app.route('/player/disconnect/<steamid>', methods=['GET'])
 def player_disconnect(steamid):
+  existingPlayer = Player.query.filter_by(steamid=steamid).first()
+
+  if existingPlayer:
+    existingPlayer.online = False
+    db.session.commit()
 
   socketio.emit('user_disconnected', {'steamid':steamid})
 
