@@ -15,6 +15,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 socketio = SocketIO(app, logger=True, engineio_logger=True)
 db = SQLAlchemy(app)
 
+port = int(os.environ.get("PORT", 5000))
+
+print("Starting on port: %s" % port)
 
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -46,7 +49,7 @@ stripe.api_key = stripe_keys['secret_key']
 
 @app.route('/', methods=['GET'])
 def generic():
-    return render_template('home.html', title = "Landing page")
+    return render_template('home.html', title = "Landing page", port=port)
 
 @app.route('/process-give', methods=['POST'])
 def process():
@@ -184,7 +187,7 @@ def test_connect():
 def test_disconnect():
     print('Client disconnected')
 
-port = int(os.environ.get("PORT", 5000))
+
 
 if __name__ == '__main__':
     socketio.run(app, port=port)

@@ -1,6 +1,8 @@
 $(document).ready(function() {
     namespace = '/';
-    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+    var soString = location.protocol + '//' + document.domain + ':' + soPort + namespace;
+    console.log(soString);
+    var socket = io.connect(location.protocol + '//' + document.domain + ':' + soPort + namespace);
 
     socket.on('connect', function() {
         socket.emit('my_event', {data: 'I\'m connected!'});
