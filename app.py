@@ -11,7 +11,7 @@ import json
 
 app = Flask(__name__)
 app.config.from_object('settings.Config')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://rustard_u:password@localhost/rustard'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 socketio = SocketIO(app, logger=True, engineio_logger=True)
 db = SQLAlchemy(app)
 
