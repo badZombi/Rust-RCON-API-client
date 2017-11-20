@@ -31,12 +31,17 @@ $( document ).ready(function() {
 
 function removePlayer(playerId){
   console.log(playerId);
-  $("#player-" + playerId).remove()
+  $("#player-" + playerId).remove();
+
+  // we check for '1' becuse there is a template at the bottom thst will register
+  if($(".player-box").length == 1){
+    $("#no_players").show();
+  }
 }
 
 function newPlayer(playerId, playerName, avatar){
   console.log(playerId);
-
+  $("#no_players").hide();
   if($("#player-" + playerId).length == 0) {
     playerTemplate = $("#player-template").clone();
 

@@ -4,6 +4,7 @@ import settings
 from flask import Flask, render_template, redirect, url_for, jsonify, send_from_directory, request
 from flask_socketio import SocketIO, emit
 from flask_sqlalchemy import SQLAlchemy
+from collections import OrderedDict
 import hashlib
 import stripe
 import requests
@@ -15,6 +16,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 socketio = SocketIO(app, logger=True, engineio_logger=True)
 db = SQLAlchemy(app)
 
+host = str(os.environ.get("IP", '127.0.0.1'))
 port = int(os.environ.get("PORT", 5001))
 
 print("Starting on port: %s" % port)
@@ -47,9 +49,24 @@ stripe_keys = {
 
 stripe.api_key = stripe_keys['secret_key']
 
+def serialize_player(player):
+    player = {
+      "id": player.steamid,
+      "name": player.personaname,
+      "avatar": player.avatar_m
+    }
+    return player
+
 @app.route('/', methods=['GET'])
 def generic():
-    return render_template('home.html', title = "Landing page", port=port)
+    online_players = Player.query.filter_by(online=True).all()
+
+    players = [
+      serialize_player(player)
+      for player in online_players
+    ]
+
+    return render_template('home.html', title = "Landing page", players=players)
 
 @app.route('/process-give', methods=['POST'])
 def process():
@@ -190,4 +207,4 @@ def test_disconnect():
 
 
 if __name__ == '__main__':
-    socketio.run(app, port=port)
+    socketio.run(app, host=host , port=port)

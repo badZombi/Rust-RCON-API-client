@@ -1,11 +1,14 @@
 {% extends "layout.html" %}
 {% block body %}
 
-    <h3>Select a player:</h3>
 
+
+
+    <h3>Select a player:</h3>
     <div id="players" class="">
       <div id="cbox" class="centering">
-      {% for player in config.PLAYERS %}
+      {% if players %}
+      {% for player in players %}
           <div class="player-box" id="player-{{ player.id }}">
             <div class="player-inner" data-id="{{ player.id }}" data-name="{{ player.name }}">
               <img src="{{ player.avatar }}">
@@ -13,6 +16,10 @@
             </div>
           </div>
       {% endfor %}
+      <p id="no_players" style="display:none">Sorry, no one is online at the moment!</p>
+      {% else %}
+        <p id="no_players">Sorry, no one is online at the moment!</p>
+      {% endif %}
       </div>
 
     </div>
@@ -58,7 +65,6 @@
       <a href="#" id="resetButton" name="resetButton" class="btn btn-danger">Cancel</a>
       <button id="giveButton" name="giveButton" class="btn btn-success">Give it!</button>
     </form>
-
 
 <div class="player-box" id="player-template" style="display:none">
   <div class="player-inner" data-id="id" data-name="name">
