@@ -2,3 +2,7 @@ Flask==0.12
 gunicorn==19.7.0
 python-dotenv==0.5.1
 stripe==1.75.0
+psycopg2==2.7.3.2
+Flask-SQLAlchemy==2.3.2
+eventlet==0.21.0
+Flask-SocketIO==2.9.2
