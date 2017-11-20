@@ -15,7 +15,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 socketio = SocketIO(app, logger=True, engineio_logger=True)
 db = SQLAlchemy(app)
 
-port = int(os.environ.get("PORT", 5000))
+port = int(os.environ.get("PORT", 5001))
 
 print("Starting on port: %s" % port)
 
